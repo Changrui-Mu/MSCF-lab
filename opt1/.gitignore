@@ -1,0 +1,14 @@
+# Foundry build artifacts
+cache/
+out/
+broadcast/
+
+# Vendored dependencies (fetched by setup.sh)
+lib/
+
+# Editor/OS noise
+.DS_Store
+*.swp
+
+# SDD harness scratch
+.superpowers/

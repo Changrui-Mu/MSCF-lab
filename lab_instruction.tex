@@ -1,0 +1,243 @@
+\documentclass[11pt,letterpaper]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.4em}
+\setlist{itemsep=0.15em,topsep=0.35em,parsep=0pt,partopsep=0pt}
+\renewcommand{\arraystretch}{1.25}
+\newcommand{\evidencebox}[2]{%
+    \noindent\textbf{#1}\par
+    \begin{center}
+    \fbox{%
+        \begin{minipage}[c][1.55in][c]{0.91\linewidth}
+        \centering
+        \textit{Paste screenshot here}\\[0.45em]
+        \small #2
+        \end{minipage}%
+    }
+    \end{center}
+    \vspace{0.15em}
+}
+
+\begin{document}
+
+\title{\textbf{Foundations of Blockchains}\\
+\large Smart-Contract Lab Instructions}
+\author{}
+\date{Due: \underline{\hspace{2.2in}}}
+\maketitle
+
+\textbf{Name:} \underline{\hspace{2.6in}}
+\hfill
+\textbf{Section:} \underline{\hspace{1.4in}}
+
+\section*{Overview: Choose One Question}
+
+Complete \textbf{one} of the three lab questions below. The purpose of this lab
+is not merely to make a contract compile: you must deploy it to Remix's local
+test blockchain, interact with it, and provide visible evidence that its main
+security behavior works. Read the selected lab's \texttt{README.md} and the
+comments around every \texttt{TODO} or multiple-choice decision before editing
+the Solidity files.
+
+\textbf{Common Remix workflow}
+
+\begin{enumerate}[leftmargin=0.3in]
+    \item Open \href{https://remix.ethereum.org}{remix.ethereum.org} in Chrome
+    or Firefox. In File Explorer, use \textbf{Clone} to load the course
+    repository, or create a workspace and copy in the files named under your
+    selected question.
+    \item Open the \textbf{Solidity Compiler} tab. Select compiler version
+    \textbf{0.8.20 or newer} and compile the main contract together with its
+    imports. Resolve every red compiler error before continuing.
+    \item Open \textbf{Deploy \& Run Transactions}. Set \textbf{Environment}
+    to \textbf{Remix VM}; do not use a public network or real funds. Select the
+    named contract, provide any constructor arguments, and click
+    \textbf{Deploy}.
+    \item Expand the instance under \textbf{Deployed Contracts} and perform
+    the functional check specified for your question. If you change the source,
+    compile again and deploy a \emph{new} instance: an old deployment still
+    contains the old bytecode.
+\end{enumerate}
+
+\textbf{Screenshot submission.} Submit clear, labeled screenshots showing
+(1) a successful compile with the contract name and compiler version visible,
+(2) the contract under \textbf{Deployed Contracts} with its address visible,
+and (3) the successful functional check described below. One screenshot may
+satisfy more than one item if all required evidence is readable. Keep the
+Remix transaction terminal visible when it helps establish that a call
+succeeded; a source-code screenshot by itself is not proof of deployment.
+Paste the final images into the framed placeholders on your selected question's
+submission page. You may leave the other two question pages blank or omit them
+from your submitted copy. Confirm that every screenshot is from your final
+compiled version and does not present a failed transaction as a successful
+result.
+
+\newpage
+\subsection*{Question 1: NFT Marketplace Auction}
+
+\textbf{Background.} This question builds an on-chain auction from three pieces:
+an ERC-20 payment token, an ERC-721 NFT collection, and a marketplace contract.
+The marketplace escrows the seller's NFT, pulls payment tokens from bidders
+using allowances, refunds an outbid participant, and settles after the
+deadline. The final checkpoint changes the payment rule from a first-price
+auction to a second-price auction, where the winner pays the second-highest bid
+and receives the excess escrow back.
+
+\textbf{Work to complete.} Follow \path{lab/opt3/README.md}.
+
+Complete \texttt{Q1--Q20} in \path{ERC20.sol}, \path{NFTCollection.sol}, and
+\path{Marketplace.sol}, then complete the three code blanks in
+\path{SecondPriceMarketplace.sol}. In Remix, open the four files under
+\path{lab/opt3/src/} and compile them with version 0.8.20 or newer. Allow Remix to
+fetch the OpenZeppelin ERC-721 dependency.
+
+\textbf{Deploy and prepare an auction.} Using the first Remix VM account as
+the seller, deploy \texttt{ERC20} with an initial supply, name, and symbol;
+deploy \texttt{NFTCollection}; and deploy \texttt{Marketplace} with a market
+name. In the NFT contract, call \texttt{mintNFT} and note the new token ID.
+Approve the marketplace address to move that NFT. Then call
+\texttt{createAuction} with the NFT address, payment-token address, token ID,
+a positive starting price, and a Unix end time at least several minutes in the
+future.
+
+\textbf{Functional check.} Transfer payment tokens to a second Remix VM
+account. Switch to that account, approve the marketplace to spend more than the
+intended bid, and call \texttt{bid} with auction index 0 and a price strictly
+above the starting price. Call \texttt{getCurrentBidOwner(0)} and
+\texttt{getCurrentBid(0)}. The returned owner must be the bidder and the price
+must equal the new bid. Also verify with \texttt{ownerOf(tokenId)} that the
+marketplace, rather than the seller, holds the NFT while the auction is open.
+Your screenshots must show the three deployed contract addresses, the
+successful \texttt{createAuction} and \texttt{bid} transactions, and the three
+read results proving that the NFT and bid are held in escrow as intended.
+
+\newpage
+\section*{Question 1 Screenshot Submission}
+
+Paste one readable image into each frame. Keep addresses and function results
+large enough to be checked without zooming into the source code.
+
+\evidencebox{Figure 1A: Compile and deployments}{Show a successful compile and
+the deployed addresses of \texttt{ERC20}, \texttt{NFTCollection}, and
+\texttt{Marketplace}.}
+
+\evidencebox{Figure 1B: Auction creation and NFT escrow}{Show the successful
+\texttt{createAuction} transaction and the \texttt{ownerOf(tokenId)} result
+equal to the marketplace address.}
+
+\evidencebox{Figure 1C: Bid and marketplace state}{Show the successful
+\texttt{bid} transaction together with \texttt{getCurrentBidOwner(0)} and
+\texttt{getCurrentBid(0)} returning the expected bidder and price.}
+
+\newpage
+\subsection*{Question 2: Hash-Time-Locked ETH and NFT Exchange}
+
+\textbf{Background.} A hash-time-locked contract (HTLC) locks an asset with a
+secret and a deadline. The receiver can claim the asset only by revealing a
+secret whose hash matches the stored hash. If the secret is not revealed in
+time, the original sender can take the asset back. The ETH contract and NFT
+contract are on two different chains. They use the same hash, so revealing
+the secret to claim one asset makes the secret available for claiming the
+other. The deadlines must still leave enough time for the second claim.
+
+\textbf{Work to complete.} All Question 2 files are in
+\path{lab/opt2/remix/}. First complete \texttt{TODO 1--7} in
+\path{SimpleHTLC.sol} and compile it with \path{SimpleHTLCChecker.sol}. Next
+complete \texttt{Q1--Q8} in \path{SimpleNFTHTLC.sol}, then compile all five
+Solidity files in the same folder. Complete the ETH checker before running the
+NFT checker because the final scenario imports your completed ETH HTLC as the
+ETH contract in the atomic sale.
+
+\textbf{Functional check, ETH contract.} In Remix VM, deploy
+\texttt{SimpleHTLCChecker}. Enter \textbf{3} in the \textbf{VALUE} field and
+select \textbf{wei}, then call \texttt{runAllTests}. Call
+\texttt{isSolved}; it must return \texttt{true}. A revert names the behavior
+that remains incorrect. After a fix, recompile and deploy a fresh checker.
+
+\textbf{Functional check, NFT contract and atomic sale.} Deploy
+\texttt{SimpleNFTHTLCChecker}. Enter \textbf{1} in the \textbf{VALUE} field
+with unit \textbf{wei}, call \texttt{runAllTests}, and then call
+\texttt{isSolved}; it must return \texttt{true}. This checker verifies NFT
+locking, rejection of an incorrect secret, receiver withdrawal, sender refund
+after expiry, and the linked ETH-for-NFT sale. Your screenshots must show both
+checkers and both \texttt{isSolved = true} results, with the
+successful \texttt{runAllTests} transactions visible.
+
+\newpage
+\section*{Question 2 Screenshot Submission}
+
+Paste one readable image into each frame. Include the Remix transaction terminal
+and the expanded checker whenever needed to make the result clear.
+
+\evidencebox{Figure 2A: ETH HTLC compile and setup}{Show a successful
+compile with compiler version 0.8.20 or newer and the
+\texttt{SimpleHTLCChecker} address.}
+
+\evidencebox{Figure 2B: ETH HTLC functional result}{Show the successful
+\texttt{runAllTests} transaction with 3 wei attached and
+\texttt{isSolved = true}.}
+
+\evidencebox{Figure 2C: NFT HTLC and atomic-sale result}{Show the deployed
+\texttt{SimpleNFTHTLCChecker}, the successful \texttt{runAllTests} transaction
+with 1 wei attached, and \texttt{isSolved = true}.}
+
+\newpage
+\subsection*{Question 3: Smart-Contract Wallet and 2-of-3 Multisig}
+
+\textbf{Background.} An externally owned Ethereum account is controlled by one
+private key. A smart-contract wallet replaces that single point of control with
+code. In this question you progress from an owner-controlled ETH wallet, through
+ERC-20 token handling, to a wallet with three administrators. The final wallet
+requires approval from any two of the three administrators before it executes
+a payment. This reduces the risk that one lost or compromised key immediately
+loses all funds, while introducing the need to encode actions, count distinct
+approvals, and prevent replay.
+
+\textbf{Work to complete.} Follow \path{lab/opt1/README.md} and complete the
+required choices and code in the three checkpoint folders under
+\path{lab/opt1/src/}. For the deployment demonstration, open
+\path{lab/opt1/src/2-multisig/MultisigWallet.sol} and its interface. Compile
+\texttt{MultisigWallet}, then deploy it with a JSON array containing three
+\emph{different} Remix VM account addresses, for example
+\texttt{["0x...","0x...","0x..."]}.
+
+\textbf{Functional check.} Send a small amount of test ETH to the deployed
+wallet. Encode a call to \texttt{transferEth(recipient, amount)} and use the
+same action bytes for every step. From the first administrator account, call
+\texttt{approve(action)}. Switch the Remix \textbf{Account} selector to the
+second administrator and call \texttt{execute(action)}; that call supplies the
+second approval and executes the payment. Verify that the recipient received
+the chosen amount and that calling \texttt{execute} again with the same action
+reverts. Your functional screenshot must show the two distinct administrator
+accounts or their approval events, the successful \texttt{Executed} event or
+transaction, and evidence of the resulting balance change. Also capture the
+failed replay attempt or the contract's \texttt{executed} value for the action
+hash.
+
+\newpage
+\section*{Question 3 Screenshot Submission}
+
+Paste one readable image into each frame. A single Remix screenshot may contain
+several panels, but each frame must establish the evidence named below.
+
+\evidencebox{Figure 3A: Compile and deployment}{Show a successful compile,
+compiler version, the deployed \texttt{MultisigWallet} address, and the three
+distinct administrator addresses used for construction.}
+
+\evidencebox{Figure 3B: Two approvals and execution}{Show calls or events from
+two different administrator accounts, the successful \texttt{Executed}
+transaction, and evidence that the recipient's balance changed.}
+
+\evidencebox{Figure 3C: Replay prevention}{Show that repeating
+\texttt{execute(action)} reverts, or show that \texttt{executed} is
+\texttt{true} for the action hash after the successful payment.}
+
+\end{document}

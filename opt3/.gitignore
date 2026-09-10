@@ -1,0 +1,11 @@
+# Foundry build artifacts
+cache/
+out/
+broadcast/
+
+# Dependencies (re-fetched by setup.sh)
+lib/
+
+# Editor/OS noise
+.DS_Store
+*.swp
